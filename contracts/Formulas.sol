@@ -2,6 +2,12 @@ pragma solidity ^0.4.17;
 
 contract FinancialFormulas {
 
+    // TODO: NPV
+
+    // TODO: IRR
+
+    // TODO: RATE
+
     // PMT()
     function calculatePayment(uint requestedRate, uint lengthInPeriods, uint requestedAmount) private returns (uint) {
         uint numerator = futureValue(requestedRate, lengthInPeriods, requestedAmount, 10) / requestedRate * 100000000;
