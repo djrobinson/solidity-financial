@@ -1,0 +1,14 @@
+{
+  "name": "solidity-financial",
+  "version": "1.0.0",
+  "description": "Financial formulas in Solidity",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Danny Robinson",
+  "license": "ISC",
+  "dependencies": {
+    "solc": "^0.4.24"
+  }
+}
