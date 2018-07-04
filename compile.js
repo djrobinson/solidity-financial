@@ -7,10 +7,10 @@ const buildPath = path.resolve(__dirname, 'build');
 // Deletes the old build
 fs.removeSync(buildPath);
 
-// Create campaign path
-const campaignPath = path.resolve(__dirname, 'contracts', 'Formulas.sol');
-// Find file at campaign path
-const source = fs.readFileSync(campaignPath, 'utf8');
+// Create formulas path
+const formulasPath = path.resolve(__dirname, 'contracts', 'Formulas.sol');
+// Find file at formulas path
+const source = fs.readFileSync(formulasPath, 'utf8');
 console.log("Source? ", source);
 const output = solc.compile(source, 1).contracts;
 console.log("Output? ", output);
@@ -25,3 +25,5 @@ for (let contract in output) {
     output[contract]
   );
 }
+
+module.exports = output[':FinancialFormulas'];
