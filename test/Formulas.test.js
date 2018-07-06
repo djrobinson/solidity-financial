@@ -35,7 +35,7 @@ describe('FinancialFormulas', () => {
     const message = await financialFormulas.methods.ipmt(50, 4, 24, 50000, 0, false).call();
     assert.equal(message, 220);
   });
-  // PAYMENT DOESN'T WORK YET
+  // PAYMENT DOESN'T WORK YET. SET TO ZERO IN THIS TEST
   it('Calculates happy path FV', async () => {
     const message = await financialFormulas.methods.fv(50, 24, 0, 50000, false).call();
     assert.equal(message, 56357);
