@@ -35,11 +35,11 @@ node deploy.js
 **Status: pmt param not working yet. Only works for lump sums**
 
 ### `=PMT (rate, nper, pv, [fv], [loanType])`
-**Status: happy path working**
+**Status: Happy path working**
 
 
 ### `=IPMT (rate, per, nper, pv, [fv], [loanType])`
-**Status: happy path working**
+**Status: Happy path working**
 
 ### `=PPMT (rate, per, nper, pv, [fv], [loanType])`
-**Piggy backing of IPMT. Needs a refactor.**
+**Status: Reuses IPMT. Needs a refactor.**
