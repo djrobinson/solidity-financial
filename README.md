@@ -31,14 +31,15 @@ node deploy.js
 
 ## Formulas
 
-### `=FV (rate, nper, pmt, [pv], [type])`
+### `=FV (rate, nper, pmt, [pv], [loanType])`
+**Status: pmt param not working yet. Only works for lump sums**
+
+### `=PMT (rate, nper, pv, [fv], [loanType])`
+**Status: happy path working**
 
 
-### `=PMT (rate, nper, pv, [fv], [type])`
+### `=IPMT (rate, per, nper, pv, [fv], [loanType])`
+**Status: happy path working**
 
-
-### `=IPMT (rate, per, nper, pv, [fv], [type])`
-
-
-### `=PPMT (rate, per, nper, pv, [fv], [type])`
-### 
+### `=PPMT (rate, per, nper, pv, [fv], [loanType])`
+**Piggy backing of IPMT. Needs a refactor.**
