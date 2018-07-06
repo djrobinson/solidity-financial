@@ -43,3 +43,14 @@ node deploy.js
 
 ### `=PPMT (rate, per, nper, pv, [fv], [loanType])`
 **Status: Reuses IPMT. Needs a refactor.**
+
+## TODO
+- PV
+- NPV
+- IRR
+- RATE
+- NPER
+- Figure out how to work w/ signed ints for negative values of pmt in the FV formula
+- Explore if amortization schedules in-contract makes sense
+- Add loanType helper
+- Error checking & handling
