@@ -18,17 +18,18 @@ contract FinancialFormulas {
       return s;
     }
 
-    // Use internally to calculate future principal balances
+    // Use uinternally to calculate future principal balances
     function balance( uint rateBps, uint period, uint lengthInPeriods, uint _presentValue, uint _futureValue) private returns (uint) {
         uint payment = pmt( rateBps, lengthInPeriods, _presentValue, _futureValue, false );
         uint newBalance = (( _presentValue * calculateSpcaFactor(rateBps, period, 20) ) - ( ( payment * 10000 / rateBps )  * ( calculateSpcaFactor(rateBps, period, 20)  - d ))) / d;
         return newBalance;
     }
 
-    //   FV(interest_rate, number_payments, payment, PV, Type)
-    function fv(uint rateBps, uint lengthInPeriods, uint payment, uint presentValue) public returns (uint) {
-      uint futureValue = calculateSpcaFactor(rateBps, lengthInPeriods, 20) * presentValue;
-      return futureValue;
+    // FV(interest_rate, number_payments, payment, PV, Type)
+    // TODO: INCLUDE PAYMENT IN CALCULATION
+    function fv(uint rateBps, uint lengthInPeriods, uint payment, uint presentValue, bool _loanType) public returns (uint) {
+            uint futureValue = calculateSpcaFactor(rateBps, lengthInPeriods, 20) * presentValue / d;
+        return futureValue;
     }
 
     // PMT

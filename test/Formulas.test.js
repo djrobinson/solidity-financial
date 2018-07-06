@@ -23,8 +23,21 @@ describe('FinancialFormulas', () => {
   it('deploys a contract', () => {
     assert.ok(financialFormulas.options.address);
   });
-  it('has default message', async () => {
-    const message = await financialFormulas.methods.testMessage().call();
-    assert.equal(message, 'testing');
+  it('Calculates happy path PMT', async () => {
+    const message = await financialFormulas.methods.pmt(50, 24, 50000, 0, false).call();
+    assert.equal(message, 2216);
+  });
+  it('Calculates happy path PPMT', async () => {
+    const message = await financialFormulas.methods.ppmt(50, 4, 24, 50000, 0, false).call();
+    assert.equal(message, 1996);
+  });
+  it('Calculates happy path IPMT', async () => {
+    const message = await financialFormulas.methods.ipmt(50, 4, 24, 50000, 0, false).call();
+    assert.equal(message, 220);
+  });
+  // PAYMENT DOESN'T WORK YET
+  it('Calculates happy path FV', async () => {
+    const message = await financialFormulas.methods.fv(50, 24, 0, 50000, false).call();
+    assert.equal(message, 56357);
   });
 });
