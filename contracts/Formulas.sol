@@ -5,6 +5,98 @@ contract FinancialFormulas {
     // USED TO KEEP DECIMAL PLACE PRECISION
     uint public constant d = 1000000000;
 
+    /**
+     * 2^127.
+     */
+    uint128 private constant TWO127 = 0x80000000000000000000000000000000;
+
+    /**
+     * 2^128 - 1.
+     */
+    uint128 private constant TWO128_1 = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+
+    /**
+     * ln(2) * 2^128.
+     */
+    uint128 private constant LN2 = 0xb17217f7d1cf79abc9e3b39803f2f6af;
+
+    /**
+     * Return index of most significant non-zero bit in given non-zero 256-bit
+     * unsigned integer value.
+     *
+     * @param x value to get index of most significant non-zero bit in
+     * @return index of most significant non-zero bit in given number
+     */
+    function mostSignificantBit (uint256 x) pure internal returns (uint8) {
+      require (x > 0);
+
+      uint8 l = 0;
+      uint8 h = 255;
+
+      while (h > l) {
+        uint8 m = uint8 ((uint16 (l) + uint16 (h)) >> 1);
+        uint256 t = x >> m;
+        if (t == 0) h = m - 1;
+        else if (t > 1) l = m + 1;
+        else return m;
+      }
+
+      return h;
+    }
+
+    /**
+     * Calculate log_2 (x / 2^128) * 2^128.
+     *
+     * @param x parameter value
+     * @return log_2 (x / 2^128) * 2^128
+     */
+    function log_2 (uint256 x) pure internal returns (int256) {
+      require (x > 0);
+
+      uint8 msb = mostSignificantBit (x);
+
+      if (msb > 128) x >>= msb - 128;
+      else if (msb < 128) x <<= 128 - msb;
+
+      x &= TWO128_1;
+
+      int256 result = (int256 (msb) - 128) << 128; // Integer part of log_2
+
+      int256 bit = TWO127;
+      for (uint8 i = 0; i < 128 && x > 0; i++) {
+        x = (x << 1) + ((x * x + TWO127) >> 128);
+        if (x > TWO128_1) {
+          result |= bit;
+          x = (x >> 1) - TWO127;
+        }
+        bit >>= 1;
+      }
+
+      return result;
+    }
+
+    /**
+     * Calculate ln (x / 2^128) * 2^128.
+     *
+     * @param x parameter value
+     * @return ln (x / 2^128) * 2^128
+     */
+    function ln (uint256 x) pure public returns (int256) {
+      require (x > 0);
+
+      int256 l2 = log_2 (x);
+      if (l2 == 0) return 0;
+      else {
+        uint256 al2 = uint256 (l2 > 0 ? l2 : -l2);
+        uint8 msb = mostSignificantBit (al2);
+        if (msb > 127) al2 >>= msb - 127;
+        al2 = (al2 * LN2 + TWO127) >> 128;
+        if (msb > 127) al2 <<= msb - 127;
+
+        return int256 (l2 >= 0 ? al2 : -al2);
+      }
+    }
+
     function calculateSpcaFactor( uint rate, uint n, uint precision) public returns (uint) {
       uint s = 0;
       uint N = 1;
@@ -16,38 +108,6 @@ contract FinancialFormulas {
         B  = B * (i+1);
       }
       return s;
-    }
-
-    // https://ethereum.stackexchange.com/questions/8086/logarithm-math-operation-in-solidity
-    function log2(uint x) returns (uint y){
-        assembly {
-            let arg := x
-            x := sub(x,1)
-            x := or(x, div(x, 0x02))
-            x := or(x, div(x, 0x04))
-            x := or(x, div(x, 0x10))
-            x := or(x, div(x, 0x100))
-            x := or(x, div(x, 0x10000))
-            x := or(x, div(x, 0x100000000))
-            x := or(x, div(x, 0x10000000000000000))
-            x := or(x, div(x, 0x100000000000000000000000000000000))
-            x := add(x, 1)
-            let m := mload(0x40)
-            mstore(m,           0xf8f9cbfae6cc78fbefe7cdc3a1793dfcf4f0e8bbd8cec470b6a28a7a5a3e1efd)
-            mstore(add(m,0x20), 0xf5ecf1b3e9debc68e1d9cfabc5997135bfb7a7a3938b7b606b5b4b3f2f1f0ffe)
-            mstore(add(m,0x40), 0xf6e4ed9ff2d6b458eadcdf97bd91692de2d4da8fd2d0ac50c6ae9a8272523616)
-            mstore(add(m,0x60), 0xc8c0b887b0a8a4489c948c7f847c6125746c645c544c444038302820181008ff)
-            mstore(add(m,0x80), 0xf7cae577eec2a03cf3bad76fb589591debb2dd67e0aa9834bea6925f6a4a2e0e)
-            mstore(add(m,0xa0), 0xe39ed557db96902cd38ed14fad815115c786af479b7e83247363534337271707)
-            mstore(add(m,0xc0), 0xc976c13bb96e881cb166a933a55e490d9d56952b8d4e801485467d2362422606)
-            mstore(add(m,0xe0), 0x753a6d1b65325d0c552a4d1345224105391a310b29122104190a110309020100)
-            mstore(0x40, add(m, 0x100))
-            let magic := 0x818283848586878898a8b8c8d8e8f929395969799a9b9d9e9faaeb6bedeeff
-            let shift := 0x100000000000000000000000000000000000000000000000000000000000000
-            let a := div(mul(x, magic), shift)
-            y := div(mload(add(m,sub(255,a))), shift)
-            y := add(y, mul(256, gt(arg, 0x8000000000000000000000000000000000000000000000000000000000000000)))
-        }
     }
 
     // Use uinternally to calculate future principal balances
@@ -73,7 +133,11 @@ contract FinancialFormulas {
 
     // NPER()
     function nper(uint _rate, uint _pmt, uint _pv, uint _fv, bool _loanType) returns (int) {
-        int n = -log2( 1 - _rate / 10000 / _pmt) / log2(1 + _rate / 10000)
+        uint rate = _rate * d;
+        uint pmt = _pmt * d;
+        uint pv = _pv * d;
+        uint bpsConverter = 10000 * d;
+        int n = -ln( d - rate / bpsConverter * pv / pmt) / ln(d + rate / bpsConverter);
         // -N*log(1+i) = log(1-iA/P)
         return 0;
     }
@@ -92,8 +156,7 @@ contract FinancialFormulas {
     }
 
     // RATE()
-
-    function rate(uint _nper, uint _pmt, uint _pv, bool _loanType, uint _guess) {
+    function rate(uint _nper, uint _pmt, uint _pv, bool _loanType, uint _guess) returns (uint) {
         // Newton's method: https://math.stackexchange.com/questions/502976/newtons-method-annuity-due-equation
         return 0;
     }
