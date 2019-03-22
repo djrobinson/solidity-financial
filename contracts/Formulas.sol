@@ -70,9 +70,32 @@
             return pv;
         }
 
-        // NPER()
+        // PMT
+        function pmt(uint _requestedRate, uint _nper, uint _requestedAmount, uint _fv, bool _loanType) public returns (uint) {
+            uint numerator = calculateSpcaFactor(_requestedRate, _nper, 10) * _requestedAmount * _requestedRate / 10000;
+            uint denominator = calculateSpcaFactor(_requestedRate, _nper, 10) - d;
+            uint calculatedPayment = numerator / denominator;
+            return calculatedPayment;
+        }
+
+        // PPMT
+        function ppmt(uint _rate, uint _period, uint nper, uint _pv, uint _fv, bool _loanType) public returns (uint) {
+            uint payment = pmt( _rate, nper, _pv, _fv, false );
+            uint principalPayment = payment - ipmt(_rate, _period, nper, _pv, _fv, false);
+            return principalPayment;
+        }
+
+        // IPMT(interest_rate, period, number_payments, PV, FV, Type)
+        function ipmt(uint _rate, uint _period, uint _nper, uint _pv, uint _fv, bool _loanType) public returns (uint) {
+            uint payment = pmt( _rate, _nper, _pv, _fv, false );
+            uint interestPayment = payment + calculateSpcaFactor(_rate, _period - 1, 20)  / d * (balance(_rate, _period - 1, _nper, _pv, 0) * _rate / 10000 - payment);
+            return interestPayment;
+        }
+
+         // NPER()
         // Log of decimal is an issue. Use log product rules to fix?
         // https://www.rapidtables.com/calc/math/Log_Calculator.html < bottom of page
+        // logb(x / y) = logb(x) - logb(y)
         function nper(int _rate, int _pmt, int _pv, int _fv, bool _loanType) returns (int) {
             int bpsConverter = 10000;
             int n = -log2( 1 - _rate / bpsConverter * _pv / _pmt) / log2(1 + _rate / bpsConverter);
@@ -97,27 +120,5 @@
         function rate(uint _nper, uint _pmt, uint _pv, bool _loanType, uint _guess) returns (uint) {
             // Newton's method: https://math.stackexchange.com/questions/502976/newtons-method-annuity-due-equation
             return 0;
-        }
-
-        // PMT
-        function pmt(uint _requestedRate, uint _nper, uint _requestedAmount, uint _fv, bool _loanType) public returns (uint) {
-            uint numerator = calculateSpcaFactor(_requestedRate, _nper, 10) * _requestedAmount * _requestedRate / 10000;
-            uint denominator = calculateSpcaFactor(_requestedRate, _nper, 10) - d;
-            uint calculatedPayment = numerator / denominator;
-            return calculatedPayment;
-        }
-
-        // PPMT
-        function ppmt(uint _rate, uint _period, uint nper, uint _pv, uint _fv, bool _loanType) public returns (uint) {
-            uint payment = pmt( _rate, nper, _pv, _fv, false );
-            uint principalPayment = payment - ipmt(_rate, _period, nper, _pv, _fv, false);
-            return principalPayment;
-        }
-
-        // IPMT(interest_rate, period, number_payments, PV, FV, Type)
-        function ipmt(uint _rate, uint _period, uint _nper, uint _pv, uint _fv, bool _loanType) public returns (uint) {
-            uint payment = pmt( _rate, _nper, _pv, _fv, false );
-            uint interestPayment = payment + calculateSpcaFactor(_rate, _period - 1, 20)  / d * (balance(_rate, _period - 1, _nper, _pv, 0) * _rate / 10000 - payment);
-            return interestPayment;
         }
     }
